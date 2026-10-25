@@ -1,0 +1,209 @@
+{
+  "title": "Pošta Slovenije",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Pošta Slovenije instellen",
+        "description": "Log in op je MojaPošta-account om je pakketten automatisch te laten vinden, of volg pakketten met hun trackingcode zonder account.",
+        "menu_options": {
+          "account": "MojaPošta-account",
+          "tracking": "Trackingcodes"
+        }
+      },
+      "account": {
+        "title": "Inloggen bij MojaPošta",
+        "description": "Gebruik de gebruikersnaam en het wachtwoord van je MojaPošta-account.",
+        "data": {
+          "username": "Gebruikersnaam",
+          "password": "Wachtwoord"
+        },
+        "data_description": {
+          "username": "De gebruikersnaam of het e-mailadres waarmee je inlogt bij MojaPošta.",
+          "password": "Je MojaPošta-wachtwoord. Het wordt bewaard zodat de integratie opnieuw kan inloggen als de sessie afloopt."
+        }
+      },
+      "tracking": {
+        "title": "Pakketten volgen met trackingcode",
+        "description": "Pošta Slovenije-tracking heeft geen account of postcode nodig — de hub wordt direct aangemaakt. Pakketten voeg je daarna toe via de integratie-opties of de service `posta_slovenije.track_parcel`."
+      },
+      "reauth_confirm": {
+        "title": "Opnieuw inloggen bij MojaPošta",
+        "description": "MojaPošta accepteert het wachtwoord voor {account} niet meer. Voer het huidige wachtwoord in.",
+        "data": {
+          "password": "Wachtwoord"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "MojaPošta heeft deze gebruikersnaam en dit wachtwoord niet geaccepteerd.",
+      "cannot_connect": "MojaPošta is niet bereikbaar. Probeer het later opnieuw."
+    },
+    "abort": {
+      "already_configured": "Dit is al ingesteld.",
+      "reauth_successful": "Opnieuw ingelogd."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pošta Slovenije-opties",
+        "menu_options": {
+          "incoming_parcels": "Inkomende pakketten",
+          "outgoing_parcels": "Uitgaande pakketten",
+          "settings": "Instellingen"
+        },
+        "sections": {
+          "parcels": {
+            "name": "Pakketten",
+            "data": {
+              "add": "Pakket toevoegen",
+              "remove": "Pakketten verwijderen"
+            },
+            "data_description": {
+              "add": "Voer een Pošta Slovenije-trackingcode in (twee letters, negen cijfers en nog twee letters, meestal SI) om het pakket te volgen. Je vindt de code op de verzendbevestiging of het bericht dat je niet thuis was."
+            }
+          },
+          "delivered": {
+            "name": "Bezorgde pakketten",
+            "data": {
+              "delivered_filter_type": "Filteren op",
+              "delivered_filter_amount": "Aantal"
+            },
+            "data_description": {
+              "delivered_filter_type": "Toon bezorgde pakketten van de laatste X dagen, of beperk tot de X meest recente.",
+              "delivered_filter_amount": "Aantal dagen of pakketten om te tonen."
+            }
+          },
+          "history": {
+            "name": "Pakketgeschiedenis",
+            "data": {
+              "include_history": "Statusgeschiedenis toevoegen"
+            },
+            "data_description": {
+              "include_history": "Voegt per pakket een geschiedenisattribuut toe met elke statusupdate (tijdstip, status, oorspronkelijke tekst). Standaard uit."
+            }
+          }
+        }
+      },
+      "incoming_parcels": {
+        "title": "Inkomende pakketten beheren",
+        "description": "Trackingcodes van pakketten die je verwacht. Tracking via code kan een pakket dat je verstuurde niet onderscheiden van een pakket dat je ontvangt, dus zet elke code in de lijst waar hij bij hoort.",
+        "data": {
+          "tracking_codes": "Trackingcodes"
+        }
+      },
+      "outgoing_parcels": {
+        "title": "Uitgaande pakketten beheren",
+        "description": "Trackingcodes van pakketten die je verstuurde. Ze worden apart geteld en gemeld, zodat ze niet meetellen bij je inkomende pakketten.",
+        "data": {
+          "tracking_codes": "Trackingcodes"
+        }
+      },
+      "settings": {
+        "title": "Instellingen",
+        "data": {
+          "delivered_filter_type": "Bezorgde pakketten: filteren op",
+          "delivered_filter_amount": "Bezorgde pakketten: aantal",
+          "include_history": "Statusgeschiedenis toevoegen"
+        }
+      }
+    },
+    "error": {
+      "invalid_tracking_code": "Dit is geen geldige Pošta Slovenije-trackingcode: twee letters, negen cijfers en nog twee letters, meestal eindigend op SI. Controleer op een typefout — het negende cijfer is een controlecijfer over de acht ervoor. Bijvoorbeeld CH000000005SI.",
+      "already_tracked": "Dit pakket wordt al gevolgd."
+    }
+  },
+  "selector": {
+    "delivered_filter_type": {
+      "options": {
+        "days": "Dagen",
+        "parcels": "Aantal pakketten"
+      }
+    },
+    "direction": {
+      "options": {
+        "incoming": "Inkomend",
+        "outgoing": "Uitgaand"
+      }
+    }
+  },
+  "services": {
+    "track_parcel": {
+      "name": "Pakket volgen",
+      "description": "Begin met het volgen van een Pošta Slovenije-pakket via de trackingcode.",
+      "fields": {
+        "tracking_code": {
+          "name": "Trackingcode",
+          "description": "De Pošta Slovenije-trackingcode."
+        },
+        "direction": {
+          "name": "Richting",
+          "description": "Of je dit pakket ontvangt of verstuurt. Tracking via code kan die twee niet onderscheiden. Roep dit opnieuw aan met de andere richting om een al gevolgd pakket te verplaatsen."
+        }
+      }
+    },
+    "untrack_parcel": {
+      "name": "Pakket niet meer volgen",
+      "description": "Stop met het volgen van een Pošta Slovenije-pakket via de trackingcode.",
+      "fields": {
+        "tracking_code": {
+          "name": "Trackingcode",
+          "description": "De Pošta Slovenije-trackingcode om niet meer te volgen."
+        }
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "parcel_registered": "Een pakket is geregistreerd",
+      "parcel_status_changed": "De status van een pakket is gewijzigd",
+      "parcel_delivered": "Een pakket is bezorgd",
+      "parcel_delivery_time_changed": "De verwachte bezorgtijd van een pakket is gewijzigd",
+      "outgoing_parcel_status_changed": "De status van een uitgaand pakket is gewijzigd",
+      "outgoing_parcel_delivered": "Een uitgaand pakket is bezorgd"
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh": {
+        "name": "Verversen"
+      }
+    },
+    "calendar": {
+      "deliveries": {
+        "name": "Bezorgingen"
+      }
+    },
+    "sensor": {
+      "incoming_parcels": {
+        "name": "Inkomende pakketten",
+        "unit_of_measurement": "pakketten"
+      },
+      "next_delivery": {
+        "name": "Volgende bezorging"
+      },
+      "awaiting_pickup": {
+        "name": "Klaar voor afhalen",
+        "unit_of_measurement": "pakketten"
+      },
+      "delivered_parcels": {
+        "name": "Bezorgde pakketten",
+        "unit_of_measurement": "pakketten"
+      },
+      "last_update": {
+        "name": "Laatste succesvolle update"
+      },
+      "parcel": {
+        "name": "Pakket {barcode}"
+      },
+      "outgoing_parcels": {
+        "name": "Uitgaande pakketten",
+        "unit_of_measurement": "pakketten"
+      },
+      "outgoing_delivered_parcels": {
+        "name": "Bezorgde uitgaande pakketten",
+        "unit_of_measurement": "pakketten"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+pytest
+pytest-asyncio
+pytest-homeassistant-custom-component
+ruff==0.17.0

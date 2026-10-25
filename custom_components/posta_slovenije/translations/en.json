@@ -1,0 +1,209 @@
+{
+  "title": "Pošta Slovenije",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Pošta Slovenije",
+        "description": "Sign in to your MojaPošta account to have its parcels found for you, or track parcels by their tracking code without an account.",
+        "menu_options": {
+          "account": "MojaPošta account",
+          "tracking": "Tracking codes"
+        }
+      },
+      "account": {
+        "title": "Sign in to MojaPošta",
+        "description": "Use the username and password of your MojaPošta account.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "data_description": {
+          "username": "The username or e-mail address you sign in to MojaPošta with.",
+          "password": "Your MojaPošta password. It is stored so the integration can sign in again when its session ends."
+        }
+      },
+      "tracking": {
+        "title": "Track parcels by tracking code",
+        "description": "Pošta Slovenije tracking needs no account or postal code — the hub is created right away. Add parcels afterwards via the integration options or the `posta_slovenije.track_parcel` service."
+      },
+      "reauth_confirm": {
+        "title": "Sign in to MojaPošta again",
+        "description": "MojaPošta no longer accepts the password for {account}. Enter the current one.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "MojaPošta did not accept this username and password.",
+      "cannot_connect": "Could not reach MojaPošta. Try again later."
+    },
+    "abort": {
+      "already_configured": "This is already set up.",
+      "reauth_successful": "Signed in again."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Pošta Slovenije options",
+        "menu_options": {
+          "incoming_parcels": "Incoming parcels",
+          "outgoing_parcels": "Outgoing parcels",
+          "settings": "Settings"
+        },
+        "sections": {
+          "parcels": {
+            "name": "Parcels",
+            "data": {
+              "add": "Add a parcel",
+              "remove": "Remove parcels"
+            },
+            "data_description": {
+              "add": "Enter a Pošta Slovenije tracking code (two letters, nine digits and two more letters, usually SI) to start tracking it. You find it on the shipping confirmation or the missed-delivery notice."
+            }
+          },
+          "delivered": {
+            "name": "Delivered parcels",
+            "data": {
+              "delivered_filter_type": "Filter by",
+              "delivered_filter_amount": "Amount"
+            },
+            "data_description": {
+              "delivered_filter_type": "Show delivered parcels from the last X days, or limit to the X most recent.",
+              "delivered_filter_amount": "Number of days or parcels to show."
+            }
+          },
+          "history": {
+            "name": "Parcel history",
+            "data": {
+              "include_history": "Include status history"
+            },
+            "data_description": {
+              "include_history": "Add a per-parcel history attribute listing each status update (timestamp, status, original text). Off by default."
+            }
+          }
+        }
+      },
+      "incoming_parcels": {
+        "title": "Manage incoming parcels",
+        "description": "Tracking codes for parcels you are expecting. Tracking by code cannot tell a parcel you sent from one you are receiving, so file each code in the list it belongs to.",
+        "data": {
+          "tracking_codes": "Tracking codes"
+        }
+      },
+      "outgoing_parcels": {
+        "title": "Manage outgoing parcels",
+        "description": "Tracking codes for parcels you sent. They are counted and reported separately, so they stay out of your incoming parcel count.",
+        "data": {
+          "tracking_codes": "Tracking codes"
+        }
+      },
+      "settings": {
+        "title": "Settings",
+        "data": {
+          "delivered_filter_type": "Delivered parcels: filter by",
+          "delivered_filter_amount": "Delivered parcels: amount",
+          "include_history": "Include status history"
+        }
+      }
+    },
+    "error": {
+      "invalid_tracking_code": "That is not a valid Pošta Slovenije tracking code: two letters, nine digits and two more letters, usually ending in SI. Check it for a typo — the ninth digit is a check digit over the eight before it. For example CH000000005SI.",
+      "already_tracked": "That parcel is already being tracked."
+    }
+  },
+  "selector": {
+    "delivered_filter_type": {
+      "options": {
+        "days": "Days",
+        "parcels": "Number of parcels"
+      }
+    },
+    "direction": {
+      "options": {
+        "incoming": "Incoming",
+        "outgoing": "Outgoing"
+      }
+    }
+  },
+  "services": {
+    "track_parcel": {
+      "name": "Track parcel",
+      "description": "Start tracking a parcel by its Pošta Slovenije tracking code.",
+      "fields": {
+        "tracking_code": {
+          "name": "Tracking code",
+          "description": "The Pošta Slovenije tracking code."
+        },
+        "direction": {
+          "name": "Direction",
+          "description": "Whether you are receiving this parcel or sending it. Tracking by code cannot tell the two apart. Calling this again with the other direction moves an already tracked parcel."
+        }
+      }
+    },
+    "untrack_parcel": {
+      "name": "Untrack parcel",
+      "description": "Stop tracking a parcel by its Pošta Slovenije tracking code.",
+      "fields": {
+        "tracking_code": {
+          "name": "Tracking code",
+          "description": "The Pošta Slovenije tracking code to stop tracking."
+        }
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "parcel_registered": "A parcel was registered",
+      "parcel_status_changed": "A parcel's status changed",
+      "parcel_delivered": "A parcel was delivered",
+      "parcel_delivery_time_changed": "A parcel's expected delivery time changed",
+      "outgoing_parcel_status_changed": "An outgoing parcel's status changed",
+      "outgoing_parcel_delivered": "An outgoing parcel was delivered"
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh": {
+        "name": "Refresh"
+      }
+    },
+    "calendar": {
+      "deliveries": {
+        "name": "Deliveries"
+      }
+    },
+    "sensor": {
+      "incoming_parcels": {
+        "name": "Incoming parcels",
+        "unit_of_measurement": "parcels"
+      },
+      "next_delivery": {
+        "name": "Next delivery"
+      },
+      "awaiting_pickup": {
+        "name": "Awaiting pickup",
+        "unit_of_measurement": "parcels"
+      },
+      "delivered_parcels": {
+        "name": "Delivered parcels",
+        "unit_of_measurement": "parcels"
+      },
+      "last_update": {
+        "name": "Last successful update"
+      },
+      "parcel": {
+        "name": "Parcel {barcode}"
+      },
+      "outgoing_parcels": {
+        "name": "Outgoing parcels",
+        "unit_of_measurement": "parcels"
+      },
+      "outgoing_delivered_parcels": {
+        "name": "Outgoing delivered parcels",
+        "unit_of_measurement": "parcels"
+      }
+    }
+  }
+}

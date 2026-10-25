@@ -1,0 +1,22 @@
+track_parcel:
+  fields:
+    tracking_code:
+      required: true
+      example: "CH000000005SI"
+      selector:
+        text:
+    direction:
+      default: incoming
+      selector:
+        select:
+          options:
+            - "incoming"
+            - "outgoing"
+
+untrack_parcel:
+  fields:
+    tracking_code:
+      required: true
+      example: "CH000000005SI"
+      selector:
+        text:

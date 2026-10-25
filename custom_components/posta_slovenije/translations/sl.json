@@ -1,0 +1,209 @@
+{
+  "title": "Pošta Slovenije",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Nastavitev Pošte Slovenije",
+        "description": "Prijavite se v račun MojaPošta, da se vaše pošiljke poiščejo same, ali pa sledite pošiljkam po sledilni kodi brez računa.",
+        "menu_options": {
+          "account": "Račun MojaPošta",
+          "tracking": "Sledilne kode"
+        }
+      },
+      "account": {
+        "title": "Prijava v MojaPošta",
+        "description": "Uporabite uporabniško ime in geslo računa MojaPošta.",
+        "data": {
+          "username": "Uporabniško ime",
+          "password": "Geslo"
+        },
+        "data_description": {
+          "username": "Uporabniško ime ali e-poštni naslov, s katerim se prijavljate v MojaPošta.",
+          "password": "Vaše geslo za MojaPošta. Shranjeno je, da se lahko integracija znova prijavi, ko seja poteče."
+        }
+      },
+      "tracking": {
+        "title": "Sledenje pošiljkam po sledilni kodi",
+        "description": "Sledenje Pošte Slovenije ne potrebuje računa ali poštne številke — vozlišče se ustvari takoj. Pošiljke dodate pozneje v možnostih integracije ali s storitvijo `posta_slovenije.track_parcel`."
+      },
+      "reauth_confirm": {
+        "title": "Znova se prijavite v MojaPošta",
+        "description": "MojaPošta ne sprejema več gesla za {account}. Vnesite trenutno geslo.",
+        "data": {
+          "password": "Geslo"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "MojaPošta ni sprejela tega uporabniškega imena in gesla.",
+      "cannot_connect": "MojaPošte ni mogoče doseči. Poskusite znova pozneje."
+    },
+    "abort": {
+      "already_configured": "To je že nastavljeno.",
+      "reauth_successful": "Ponovna prijava je uspela."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Možnosti Pošte Slovenije",
+        "menu_options": {
+          "incoming_parcels": "Prihajajoče pošiljke",
+          "outgoing_parcels": "Odhajajoče pošiljke",
+          "settings": "Nastavitve"
+        },
+        "sections": {
+          "parcels": {
+            "name": "Pošiljke",
+            "data": {
+              "add": "Dodaj pošiljko",
+              "remove": "Odstrani pošiljke"
+            },
+            "data_description": {
+              "add": "Vnesite sledilno kodo Pošte Slovenije (dve črki, devet številk in še dve črki, običajno SI), da začnete slediti. Najdete jo na potrdilu o pošiljanju ali obvestilu o neuspeli dostavi."
+            }
+          },
+          "delivered": {
+            "name": "Dostavljene pošiljke",
+            "data": {
+              "delivered_filter_type": "Filtriraj po",
+              "delivered_filter_amount": "Količina"
+            },
+            "data_description": {
+              "delivered_filter_type": "Prikaži dostavljene pošiljke zadnjih X dni ali omeji na X najnovejših.",
+              "delivered_filter_amount": "Število dni ali pošiljk za prikaz."
+            }
+          },
+          "history": {
+            "name": "Zgodovina pošiljk",
+            "data": {
+              "include_history": "Vključi zgodovino statusov"
+            },
+            "data_description": {
+              "include_history": "Doda atribut zgodovine za posamezno pošiljko s seznamom vsake spremembe statusa (časovni žig, status, izvirno besedilo). Privzeto izklopljeno."
+            }
+          }
+        }
+      },
+      "incoming_parcels": {
+        "title": "Upravljanje prihajajočih pošiljk",
+        "description": "Sledilne kode pošiljk, ki jih pričakujete. Sledenje po kodi ne loči pošiljke, ki ste jo poslali, od tiste, ki jo prejemate, zato vsako kodo uvrstite na pravi seznam.",
+        "data": {
+          "tracking_codes": "Sledilne kode"
+        }
+      },
+      "outgoing_parcels": {
+        "title": "Upravljanje odhajajočih pošiljk",
+        "description": "Sledilne kode pošiljk, ki ste jih poslali. Štejejo se in poročajo ločeno, zato niso del števila prihajajočih pošiljk.",
+        "data": {
+          "tracking_codes": "Sledilne kode"
+        }
+      },
+      "settings": {
+        "title": "Nastavitve",
+        "data": {
+          "delivered_filter_type": "Dostavljene pošiljke: filtriraj po",
+          "delivered_filter_amount": "Dostavljene pošiljke: količina",
+          "include_history": "Vključi zgodovino statusov"
+        }
+      }
+    },
+    "error": {
+      "invalid_tracking_code": "To ni veljavna sledilna koda Pošte Slovenije: dve črki, devet številk in še dve črki, običajno na koncu SI. Preverite, ali je prišlo do tipkarske napake — deveta številka je kontrolna številka za osem pred njo. Na primer CH000000005SI.",
+      "already_tracked": "Tej pošiljki se že sledi."
+    }
+  },
+  "selector": {
+    "delivered_filter_type": {
+      "options": {
+        "days": "Dnevi",
+        "parcels": "Število paketov"
+      }
+    },
+    "direction": {
+      "options": {
+        "incoming": "Prihajajoče",
+        "outgoing": "Odhajajoče"
+      }
+    }
+  },
+  "services": {
+    "track_parcel": {
+      "name": "Sledi pošiljki",
+      "description": "Začne slediti pošiljki Pošte Slovenije po njeni sledilni kodi.",
+      "fields": {
+        "tracking_code": {
+          "name": "Sledilna koda",
+          "description": "Sledilna koda Pošte Slovenije."
+        },
+        "direction": {
+          "name": "Smer",
+          "description": "Ali to pošiljko prejemate ali pošiljate. Sledenje po kodi obeh ne loči. Če storitev znova pokličete z drugo smerjo, se že sledena pošiljka premakne."
+        }
+      }
+    },
+    "untrack_parcel": {
+      "name": "Prenehaj slediti pošiljki",
+      "description": "Preneha slediti pošiljki Pošte Slovenije po njeni sledilni kodi.",
+      "fields": {
+        "tracking_code": {
+          "name": "Sledilna koda",
+          "description": "Sledilna koda Pošte Slovenije, ki ji naj se preneha slediti."
+        }
+      }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "parcel_registered": "Pošiljka je bila registrirana",
+      "parcel_status_changed": "Status pošiljke se je spremenil",
+      "parcel_delivered": "Pošiljka je bila dostavljena",
+      "parcel_delivery_time_changed": "Pričakovani čas dostave pošiljke se je spremenil",
+      "outgoing_parcel_status_changed": "Status odhajajoče pošiljke se je spremenil",
+      "outgoing_parcel_delivered": "Odhajajoča pošiljka je bila dostavljena"
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh": {
+        "name": "Osveži"
+      }
+    },
+    "calendar": {
+      "deliveries": {
+        "name": "Dostave"
+      }
+    },
+    "sensor": {
+      "incoming_parcels": {
+        "name": "Prihajajoči paketi",
+        "unit_of_measurement": "paketi"
+      },
+      "next_delivery": {
+        "name": "Naslednja dostava"
+      },
+      "awaiting_pickup": {
+        "name": "Pripravljeno za prevzem",
+        "unit_of_measurement": "paketi"
+      },
+      "delivered_parcels": {
+        "name": "Dostavljeni paketi",
+        "unit_of_measurement": "paketi"
+      },
+      "last_update": {
+        "name": "Zadnja uspešna posodobitev"
+      },
+      "parcel": {
+        "name": "Paket {barcode}"
+      },
+      "outgoing_parcels": {
+        "name": "Odhajajoči paketi",
+        "unit_of_measurement": "paketi"
+      },
+      "outgoing_delivered_parcels": {
+        "name": "Dostavljeni odhajajoči paketi",
+        "unit_of_measurement": "paketi"
+      }
+    }
+  }
+}

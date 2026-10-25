@@ -1,0 +1,15 @@
+{
+  "domain": "posta_slovenije",
+  "name": "Po\u0161ta Slovenije",
+  "codeowners": [
+    "@peter-mdf"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/ha-parcel-integrations/ha-posta-slovenije",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/ha-parcel-integrations/ha-posta-slovenije/issues",
+  "quality_scale": "silver",
+  "requirements": [],
+  "version": "0.9.0"
+}
