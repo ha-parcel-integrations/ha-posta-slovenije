@@ -136,6 +136,7 @@ Standard HA removal applies: **Settings → Devices & Services → Pošta Sloven
 | `sensor.posta_slovenije_delivered_parcels` | Recently delivered parcels (see the retention option) |
 | `sensor.posta_slovenije_outgoing_parcels` | Number of active parcels you sent, full list under the `parcels` attribute |
 | `sensor.posta_slovenije_outgoing_delivered_parcels` | Parcels you sent that have since been delivered (see the retention option) |
+| `calendar.posta_slovenije_deliveries` | Read-only calendar of expected deliveries, no extra API calls |
 | `sensor.posta_slovenije_last_successful_update` | Diagnostic: when Pošta Slovenije was last polled successfully |
 
 An account entry's entities carry the account in their names, for example `sensor.posta_slovenije_<account>_incoming_parcels`. A delivered parcel moves from its per-parcel sensor to the delivered sensor automatically.
