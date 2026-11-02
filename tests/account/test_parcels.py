@@ -20,7 +20,25 @@ def test_sender_and_receiver_are_populated_from_the_account():
     assert parcel["sender"] == "Example Shop"
     assert parcel["receiver"] == "Example Receiver"
     assert parcel["status"] is ParcelStatus.DELIVERED
-    assert parcel["raw"]["inbox"] is item
+    assert parcel["raw"]["inbox"]["senderName"] == "Example Shop"
+
+
+def test_pickup_codes_are_left_out_of_raw_at_any_depth():
+    item = inbox_item(1, "CH100000003SI", payByLinkUrl="https://pay.example.test/1")
+    detail = delivered_payload("CH100000003SI")
+    detail["result"]["parcel"].update(
+        pickupQRCode="QR-EXAMPLE",
+        pickupPINCode="4817",
+        payByLinkUrl="https://pay.example.test/1",
+    )
+    parcel = normalize_account_parcel(item, detail)
+    assert "QR-EXAMPLE" not in str(parcel)
+    assert "4817" not in str(parcel)
+    assert "pay.example.test" not in str(parcel)
+    assert parcel["raw"]["detail"]["result"]["parcel"]["trackingNumber"] == (
+        "CH100000003SI"
+    )
+    assert item["pickupPINCode"] == "4817"
 
 
 def test_the_coarse_inbox_status_is_never_read():

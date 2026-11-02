@@ -156,6 +156,8 @@ KNOWN_ROW_KEYS = frozenset(
     }
 )
 _PARTY_PREFIXES = ("sender", "receiver")
+# These collect or pay for a parcel, so they never reach ``raw``.
+_PASS_FIELDS = frozenset({"pickupQRCode", "pickupPINCode", "payByLinkUrl"})
 
 # Warnings already logged this session, keyed on what they are about, so each
 # unknown is reported once instead of on every poll.
@@ -318,6 +320,19 @@ def _pickup_point(row: dict[str, Any]) -> str | None:
     return ", ".join(part for part in parts if part) or None
 
 
+def _without_pass_fields(value: Any) -> Any:
+    """Copy a payload without its pass fields, at any depth."""
+    if isinstance(value, dict):
+        return {
+            key: _without_pass_fields(item)
+            for key, item in value.items()
+            if key not in _PASS_FIELDS
+        }
+    if isinstance(value, list):
+        return [_without_pass_fields(item) for item in value]
+    return value
+
+
 def normalize_scans(
     *,
     barcode: str,
@@ -409,7 +424,7 @@ def normalize_scans(
         "weight": None,
         "dimensions": None,
         "history": history,
-        "raw": raw,
+        "raw": _without_pass_fields(raw),
     }
 
 

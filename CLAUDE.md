@@ -191,9 +191,11 @@ out-for-delivery parcel is polled on the hot tier until delivered.
 **Privacy.** A delivered or returned scan carries the signer's real name, scans
 carry free-text notes, and an account's rows carry sender, receiver and the
 parcel's pickup QR code and PIN (a bearer credential for collecting it).
-None of it is read into any field, entity or log line. `raw` keeps the whole
-record per the suite rule, so it travels with the parcel into attributes and
-bus events; only diagnostics redact it (names, notes, ids, pickup codes, every
+None of it is read into any field, entity or log line. The pickup QR code, the
+PIN and `payByLinkUrl` never reach `raw`: `normalize_scans` drops them at any
+depth (`_PASS_FIELDS`), so both sources are covered. The rest of the record
+stays in `raw` per the suite rule, so it travels with the parcel into
+attributes and bus events; only diagnostics redact it (names, notes, ids, every
 `sender*`/`receiver*` field, the username and both tokens). Never log a
 username, password or token at any level.
 

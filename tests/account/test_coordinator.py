@@ -359,6 +359,25 @@ async def test_archived_outgoing_rows_are_not_tracked(hass):
     assert [p["barcode"] for p in coordinator.outgoing] == [B]
 
 
+async def test_pickup_codes_stay_out_of_published_parcels_and_events(hass):
+    client, coordinator = _setup(hass)
+    events = []
+    hass.bus.async_listen(f"{DOMAIN}_parcel_status_changed", events.append)
+
+    client.incoming = [inbox_item(1, A, stamp="t1")]
+    client.async_get_parcel.return_value = _detail(A, 2)
+    await coordinator._async_update_data()
+    client.incoming = [inbox_item(1, A, stamp="t2")]
+    client.async_get_parcel.return_value = _detail(A, 3)
+    data = await coordinator._async_update_data()
+    await hass.async_block_till_done()
+
+    assert len(events) == 1
+    for published in (data, events[0].data):
+        assert "QR-EXAMPLE" not in str(published)
+        assert "4817" not in str(published)
+
+
 async def test_outgoing_parcels_fire_only_the_outgoing_events(hass):
     client, coordinator = _setup(hass)
     seen = []

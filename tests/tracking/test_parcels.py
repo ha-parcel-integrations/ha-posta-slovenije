@@ -20,7 +20,8 @@ def test_delivered_reply():
     assert parcel["status"] is ParcelStatus.DELIVERED
     assert parcel["sender"] is None
     assert parcel["receiver"] is None
-    assert parcel["raw"] is payload
+    assert parcel["raw"]["result"]["statuses"] == payload["result"]["statuses"]
+    assert "pickupPINCode" not in parcel["raw"]["result"]["parcel"]
     assert parcel["url"].endswith(DELIVERED_CODE)
 
 

@@ -125,8 +125,6 @@ async def test_account_diagnostics_redact_credentials_parties_and_pickup_codes(h
         "receiverName",
         "senderEmail",
         "receiverPhone",
-        "pickupQRCode",
-        "pickupPINCode",
         "parcelId",
         "trackingNumber",
     ):
@@ -167,7 +165,7 @@ async def test_outgoing_lists_are_in_diagnostics_and_redacted(hass):
     assert result["counts"]["outgoing_delivered"] == 1
     assert result["outgoing"][0]["barcode"] == R
     assert result["outgoing"][0]["raw"]["inbox"]["receiverName"] == R
-    assert result["outgoing_delivered"][0]["raw"]["inbox"]["pickupPINCode"] == R
+    assert result["outgoing_delivered"][0]["raw"]["inbox"]["senderName"] == R
     text = str(result)
     for secret in ("Example Receiver", "Example Shop", "4817", RETURNED_CODE):
         assert secret not in text

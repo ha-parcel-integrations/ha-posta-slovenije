@@ -29,10 +29,6 @@ TO_REDACT = {
     "recipient",
     "signatory",
     "note",
-    # a bearer credential for collecting the parcel, and a payment link
-    "pickupQRCode",
-    "pickupPINCode",
-    "payByLinkUrl",
     # parcel-level locations (sender*/receiver* are redacted as a family)
     "pickupUnitAddress",
     "parcelDestinations",
