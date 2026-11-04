@@ -1,6 +1,7 @@
 {
   "domain": "posta_slovenije",
   "name": "Po\u0161ta Slovenije",
+  "categories": ["productivity_information"],
   "codeowners": [
     "@peter-mdf"
   ],
