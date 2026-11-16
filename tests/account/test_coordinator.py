@@ -5,6 +5,7 @@ import time
 from unittest.mock import AsyncMock, MagicMock
 
 import aiohttp
+from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 import pytest
@@ -388,7 +389,9 @@ async def test_outgoing_parcels_fire_only_the_outgoing_events(hass):
         "outgoing_parcel_status_changed",
         "outgoing_parcel_delivered",
     ):
-        hass.bus.async_listen(f"{DOMAIN}_{suffix}", lambda e: seen.append(e.event_type))
+        hass.bus.async_listen(
+            f"{DOMAIN}_{suffix}", callback(lambda e: seen.append(e.event_type))
+        )
 
     client.outgoing = [sent_item(1, A, stamp="t1")]
     client.async_get_parcel.return_value = _detail(A, 2, outgoing=True)
