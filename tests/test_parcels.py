@@ -111,7 +111,16 @@ def test_returned_parcel_is_returning_not_delivered():
     assert parcel["status"] is ParcelStatus.RETURNING
     assert parcel["delivered"] is False
     assert parcel["delivered_at"] is None
-    assert parcel["pickup_point"] is None
+    assert parcel["planned_from"] is None
+    assert parcel["pickup"] is True
+    assert parcel["pickup_point"] == "Velenje"
+
+
+def test_a_return_still_on_its_way_is_not_delivered():
+    parcel = _normalize(returned_statuses()[:6])
+    assert parcel["status"] is ParcelStatus.RETURNING
+    assert parcel["delivered"] is False
+    assert parcel["delivered_at"] is None
 
 
 def test_returned_history_derives_each_row_in_sequence():
@@ -138,7 +147,7 @@ def test_post_office_parcel_has_a_pickup_point():
     parcel = _normalize(pickup_payload()["result"]["statuses"])
     assert parcel["status"] is ParcelStatus.AT_PICKUP_POINT
     assert parcel["pickup"] is True
-    assert parcel["pickup_point"] == "Velenje, Example street 1, 3320 Velenje"
+    assert parcel["pickup_point"] == "Velenje"
 
 
 def test_failed_attempt_without_return_wording_is_a_problem(caplog):
@@ -208,6 +217,34 @@ def test_delivery_after_a_returning_attempt_is_returning():
     assert parcel["delivered"] is False
 
 
+def test_delivery_after_a_return_that_starts_at_vrp_is_returning():
+    statuses = [
+        row("N", "2099-09-29T08:00:00Z"),
+        row("VRP", "2099-09-29T09:00:00Z"),
+        row("VL", "2099-09-30T09:00:00Z"),
+    ]
+    parcel = _normalize(statuses)
+    assert parcel["status"] is ParcelStatus.RETURNING
+    assert parcel["delivered"] is False
+
+
+def test_pickup_scan_on_the_return_leg_is_returning_and_keeps_the_first_office():
+    statuses = [
+        row("PVI", "2099-09-29T09:00:00Z", **POST_OFFICE),
+        row("V", "2099-09-30T09:00:00Z", **RETURN_STEP),
+        row(
+            "IZR",
+            "2099-10-02T09:00:00Z",
+            postalId="1000",
+            postalName="Sender Office",
+        ),
+    ]
+    parcel = _normalize(statuses, include_history=True)
+    assert parcel["status"] is ParcelStatus.RETURNING
+    assert parcel["history"][-1]["status"] is ParcelStatus.RETURNING
+    assert parcel["pickup_point"] == "Velenje"
+
+
 def test_delivery_after_a_plain_problem_is_delivered():
     statuses = [
         row("V", "2026-09-29T09:00:00Z", nondeliveryActionEN="Try again tomorrow"),
@@ -250,7 +287,7 @@ def test_collected_at_the_post_office_in_person_keeps_the_pickup_point():
     ]
     parcel = _normalize(statuses)
     assert parcel["status"] is ParcelStatus.DELIVERED
-    assert parcel["pickup_point"] == "Velenje, Example street 1, 3320 Velenje"
+    assert parcel["pickup_point"] == "Velenje"
 
 
 def test_collected_at_the_post_office_keeps_the_pickup_point():
@@ -260,19 +297,21 @@ def test_collected_at_the_post_office_keeps_the_pickup_point():
     ]
     parcel = _normalize(statuses)
     assert parcel["status"] is ParcelStatus.DELIVERED
-    assert parcel["pickup_point"] == "Velenje, Example street 1, 3320 Velenje"
+    assert parcel["pickup_point"] == "Velenje"
 
 
-def test_pickup_point_is_dropped_when_the_pickup_row_is_not_the_last():
+def test_pickup_stays_true_when_the_courier_delivers_after_the_post_office():
     statuses = [
         row("IZR", "2026-09-29T09:00:00Z", **POST_OFFICE),
         row("N", "2026-09-30T08:00:00Z"),
         row("VL", "2026-09-30T09:00:00Z"),
     ]
-    assert _normalize(statuses)["pickup_point"] is None
+    parcel = _normalize(statuses)
+    assert parcel["pickup"] is True
+    assert parcel["pickup_point"] == "Velenje"
 
 
-def test_pickup_row_without_an_address_gives_no_pickup_point():
+def test_pickup_row_without_a_name_gives_no_pickup_point():
     parcel = _normalize([row("IZR", "2026-09-29T09:00:00Z")])
     assert parcel["status"] is ParcelStatus.AT_PICKUP_POINT
     assert parcel["pickup_point"] is None

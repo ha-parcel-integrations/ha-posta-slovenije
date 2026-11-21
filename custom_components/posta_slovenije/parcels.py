@@ -8,10 +8,12 @@ normalizer live here once and each source only shapes what surrounds them.
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from collections.abc import Iterable
+from datetime import UTC, date, datetime, time, timedelta, tzinfo
 import logging
 import re
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from homeassistant.config_entries import ConfigEntry
 
@@ -32,6 +34,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 CARRIER = "Pošta Slovenije"
+
+_ZONE = ZoneInfo("Europe/Ljubljana")
 
 
 def source_of(entry: ConfigEntry) -> str:
@@ -257,9 +261,10 @@ def _row_statuses(
     """Derive each row's status, oldest to newest.
 
     Two rules depend on sequence: a ``V`` whose next step returns the item to
-    the sender is ``returning`` (any other ``V`` is a ``problem``), and every
-    a delivery scan after a returning ``V`` is ``returning`` rather than
-    ``delivered``.
+    the sender is ``returning`` (any other ``V`` is a ``problem``), and once a
+    return has started (that ``V``, or a ``VRP``) a delivery or pickup-point
+    scan belongs to the return leg and is ``returning``, not ``delivered`` or
+    ``at_pickup_point``.
     A row whose code is not mapped yields ``None``.
     """
     statuses: list[ParcelStatus | None] = []
@@ -287,6 +292,8 @@ def _row_statuses(
                 status = ParcelStatus.PROBLEM
         elif code in _DELIVERY_CODES:
             status = ParcelStatus.RETURNING if returning else ParcelStatus.DELIVERED
+        elif returning and code in _PICKUP_CODES:
+            status = ParcelStatus.RETURNING
         else:
             status = _STATUS_MAP.get(code)
             if status is not None and code in _UNCONFIRMED_CODES:
@@ -298,6 +305,8 @@ def _row_statuses(
                     _text(row.get("codeDescriptionEN")) or "no description",
                     status.value,
                 )
+        if status is ParcelStatus.RETURNING:
+            returning = True
         if status is None:
             warn_once(
                 f"status:{code}",
@@ -312,12 +321,6 @@ def _row_statuses(
 
 def _raw_status(row: dict[str, Any]) -> str | None:
     return _text(row.get("codeDescriptionEN")) or _text(row.get("codeDescriptionSI"))
-
-
-def _pickup_point(row: dict[str, Any]) -> str | None:
-    """The post office and its address, from a pickup scan."""
-    parts = [_text(row.get("postalName")), _text(row.get("pickupAddress"))]
-    return ", ".join(part for part in parts if part) or None
 
 
 def _without_pass_fields(value: Any) -> Any:
@@ -375,26 +378,24 @@ def normalize_scans(
             None,
         )
 
+    pickup = is_pickup(None, status, derived)
     pickup_point = None
-    if status is ParcelStatus.AT_PICKUP_POINT:
+    if pickup:
         pickup_row = next(
-            (row for _, row in reversed(rows) if row.get("code") in _PICKUP_CODES),
-            None,
-        )
-        pickup_point = _pickup_point(pickup_row) if pickup_row else None
-    elif delivered:
-        # Collected at the post office: the pickup scan is the last one before
-        # the delivery scans.
-        last_other = next(
             (
                 row
-                for _, row in reversed(rows)
-                if row.get("code") not in _DELIVERY_CODES
+                for (_, row), value in zip(
+                    reversed(rows), reversed(derived), strict=True
+                )
+                if row.get("code") in _PICKUP_CODES
+                and value is ParcelStatus.AT_PICKUP_POINT
             ),
             None,
         )
-        if last_other is not None and last_other.get("code") in _PICKUP_CODES:
-            pickup_point = _pickup_point(last_other)
+        pickup_point = _text(pickup_row.get("postalName")) if pickup_row else None
+    planned_from, planned_to = planned_for_status(
+        status, *planned_window(None, None, zone=_ZONE)
+    )
 
     history = None
     if include_history:
@@ -416,9 +417,9 @@ def normalize_scans(
         "raw_status": _raw_status(rows[-1][1]) if rows else None,
         "delivered": delivered,
         "delivered_at": delivered_at,
-        "planned_from": None,
-        "planned_to": None,
-        "pickup": status is ParcelStatus.AT_PICKUP_POINT,
+        "planned_from": planned_from,
+        "planned_to": planned_to,
+        "pickup": pickup,
         "pickup_point": pickup_point,
         "url": tracking_url(barcode),
         "weight": None,
@@ -426,6 +427,108 @@ def normalize_scans(
         "history": history,
         "raw": _without_pass_fields(raw),
     }
+
+
+def _moment(value: Any, zone: tzinfo) -> tuple[datetime, bool, str] | None:
+    """Return ``(aware datetime, date_only, text)`` for a carrier time, or ``None``.
+
+    A naive time or a bare date gets ``zone``; an aware time keeps its offset
+    and, when it came in as a string, its own spelling.
+    """
+    if isinstance(value, datetime):
+        parsed = value
+    elif isinstance(value, date):
+        moment = datetime.combine(value, time.min, tzinfo=zone)
+        return moment, True, moment.isoformat()
+    elif isinstance(value, str) and value:
+        try:
+            if len(value) == 10:
+                moment = datetime.combine(
+                    date.fromisoformat(value), time.min, tzinfo=zone
+                )
+                return moment, True, moment.isoformat()
+            parsed = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+        if parsed.tzinfo:
+            return parsed, False, value
+    else:
+        return None
+    moment = parsed if parsed.tzinfo else parsed.replace(tzinfo=zone)
+    return moment, False, moment.isoformat()
+
+
+def _end_of_day(moment: datetime, zone: tzinfo) -> datetime:
+    local = moment.astimezone(zone)
+    return datetime.combine(local.date(), time(23, 59, 59), tzinfo=zone)
+
+
+def planned_window(
+    start: Any, end: Any, *, zone: tzinfo
+) -> tuple[str | None, str | None]:
+    """Return ``(planned_from, planned_to)`` in the canonical window shape.
+
+    ``start`` and ``end`` are ISO strings, dates or datetimes, or ``None``; an
+    epoch number must be converted first (see ``to_iso_timestamp``). A window
+    keeps both ends. One moment with a time ends at ``23:59:59`` the same local
+    day; a date covers ``00:00:00`` to ``23:59:59``; two dates run from the
+    first day's start to the last day's end. Equal values are one moment,
+    reversed values are swapped, and ``planned_to`` is never set without
+    ``planned_from``. ``zone`` is the carrier's own zone: it dates naive times
+    and bare dates and decides which day a moment ends on, so a ``Z`` moment
+    still ends on the carrier's local day. When nothing is left of that day
+    after the moment, there is no ``planned_to``.
+    """
+    first = _moment(start, zone)
+    last = _moment(end, zone)
+    if first is None:
+        first, last = last, None
+    if first is None:
+        return None, None
+
+    def closing(moment: tuple[datetime, bool, str]) -> datetime:
+        return _end_of_day(moment[0], zone) if moment[1] else moment[0]
+
+    if last is not None and closing(last) < first[0]:
+        first, last = last, first
+    if last is not None and closing(last) == first[0]:
+        last = None
+
+    if last is None:
+        end_of_day = _end_of_day(first[0], zone)
+        return first[2], end_of_day.isoformat() if end_of_day > first[0] else None
+    return first[2], closing(last).isoformat() if last[1] else last[2]
+
+
+_NO_WINDOW_STATUSES = frozenset(
+    {ParcelStatus.AT_PICKUP_POINT, ParcelStatus.RETURNING, ParcelStatus.DELIVERED}
+)
+
+
+def planned_for_status(
+    status: ParcelStatus, planned_from: str | None, planned_to: str | None
+) -> tuple[str | None, str | None]:
+    """Empty the delivery window once the parcel is at its destination or done."""
+    if status in _NO_WINDOW_STATUSES:
+        return None, None
+    return planned_from, planned_to
+
+
+def is_pickup(
+    route_flag: bool | None,
+    status: ParcelStatus,
+    event_statuses: Iterable[ParcelStatus | None] = (),
+) -> bool:
+    """Whether the delivery route ends at a pickup point.
+
+    The carrier's own route flag wins; otherwise the parcel having reached
+    ``AT_PICKUP_POINT`` at any point counts, so the value survives collection.
+    """
+    if route_flag:
+        return True
+    return status is ParcelStatus.AT_PICKUP_POINT or any(
+        event is ParcelStatus.AT_PICKUP_POINT for event in event_statuses
+    )
 
 
 def sort_parcels_by_ts(

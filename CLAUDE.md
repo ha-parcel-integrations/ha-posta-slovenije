@@ -35,10 +35,11 @@ you act in one of these areas:
   summary+diagnostic sensors. Add a new non-parcel sensor's unique_id to the set.
 - **Per-parcel sensors are removed by the summary sensor** via
   `entity_registry.async_remove` (self-removal races and leaves ghosts).
-- **The optional pickup-point summaries are a pair.** A carrier that can tell
-  a parcel is destined for a pickup point exposes
-  `en_route_to_pickup_point` for `pickup is true` before it arrives; one that
-  can reach `ParcelStatus.AT_PICKUP_POINT` also exposes `awaiting_pickup`.
+- **The pickup-point summaries are a pair.** A carrier that can deliver to a
+  pickup point or locker exposes both `en_route_to_pickup_point` and
+  `awaiting_pickup`, even before a real parcel has shown the status or flag
+  (they read 0 until then; record it in `PENDING_*`). A carrier without pickup
+  points exposes neither and keeps `pickup` constantly False.
   See *Parcel contract* in `CONVENTIONS.md`. Say "pickup point", not
   "ServicePoint"/"parcel shop"/"locker", for the generic concept; the
   example carrier demonstrates both canonical sensors.
@@ -78,7 +79,7 @@ dispatch (`__init__.py`, `config_flow.py`, `services.py`) and what both share:
 **Status comes from the scan code, never from a summary.** Keyed on each
 row's `code` with two sequence rules: a failed attempt (`V`) whose next step
 sends the item back is `returning` (any other `V` is a `problem`), and a
-delivery after it is `returning`. The delivery scans are `VL` (into the
+delivery or pickup-point scan (`IZR`/`PVI`) after it is `returning`, and a `VRP` also starts a return. The delivery scans are `VL` (into the
 mailbox) and `VR` (handed over in person) — both carry subCode `VRPIS` and the
 *Dostavljena* bucket, both mean delivered, and both stamp `delivered_at`. The back-at-sender scan (`VRP`)
 carries the *delivered* bucket in the row's own `statusId`/`statusName` — never
@@ -180,13 +181,34 @@ came from. `sender` and `receiver` on the account come from `senderName` /
 rather than quietly publishing two empty fields.
 
 **Fields that are `None` on purpose:** `planned_from`/`planned_to` (no ETA on
-either source), `weight`, `dimensions`, and on the tracking hub `sender` and
-`receiver` (withheld from a guest). `pickup` is true only while the parcel
-waits at a post office; there is no `en_route_to_pickup_point` sensor because
-nothing is known about a pickup point before arrival. Because there is no ETA,
-`next_delivery`, the calendar and `delivery_time_changed` stay empty and an
-out-for-delivery parcel is polled on the hot tier until delivered.
-`awaiting_pickup` exists (`IZR`/`PVI` reach `at_pickup_point`).
+either source; they still go through `planned_window`/`planned_for_status`),
+`weight`, `dimensions`, and on the tracking hub `sender` and `receiver`
+(withheld from a guest). Because there is no ETA, `next_delivery`, the calendar
+and `delivery_time_changed` stay empty and an out-for-delivery parcel is polled
+on the hot tier until delivered.
+
+**Pickup.** Pošta Slovenije delivers to post offices, so both
+`awaiting_pickup` and `en_route_to_pickup_point` exist. `pickup` is
+`is_pickup(None, status, row statuses)`: no structured route field has been
+seen, so it turns true once any scan mapped to `at_pickup_point` (`IZR`/`PVI`)
+and stays true after collection and on a return. `pickup_point` is the
+`postalName` of the newest `IZR`/`PVI` scan before any return started, without the address, whenever
+`pickup` is true. `en_route_to_pickup_point` therefore reads 0 until the carrier
+names the post office before arrival; that missing evidence is the reason it is
+empty, not a missing feature.
+
+**Delivered and returns.** `delivered` is `status is DELIVERED` and nothing
+else. A returned parcel stays `returning` with `delivered` False, including
+after a `VRP` scan, and keeps being polled: the `VRP` wording ("back with the
+sender") has not been confirmed on a real return, so it is not claimed as
+delivered. A return counts as delivered once a real return confirms the
+wording. `delivered_at` is the newest `VL`/`VR` delivery scan's clock. A
+`VL`/`VR` delivery scan after a returning `V` stays `returning` and not
+delivered.
+
+**Known limitation.** A door redelivery after a post-office notice leaves
+`pickup` True: the contract keeps `pickup` sticky once a parcel has been at a
+post office, so the later home delivery does not clear it.
 
 **Privacy.** A delivered or returned scan carries the signer's real name, scans
 carry free-text notes, and an account's rows carry sender, receiver and the

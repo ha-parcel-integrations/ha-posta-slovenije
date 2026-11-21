@@ -50,7 +50,9 @@ KNOWN_CAPABILITIES = frozenset(
 #   "url"                parcel["url"] is ever non-null
 #   "history"            the include_history option is implemented and does something
 #
-# Neither source reports an ETA, a weight or dimensions.
+# Neither source reports an ETA, a weight or dimensions. The post office is
+# only known once a parcel reaches it, so en_route_to_pickup_point reads 0 until
+# a scan names it earlier.
 CAPABILITIES_BY_VARIANT = {
     "Tracking": frozenset({"pickup_point", "url", "history"}),
     "Account": frozenset({"url"}),

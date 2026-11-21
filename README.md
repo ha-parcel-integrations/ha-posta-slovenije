@@ -41,7 +41,7 @@ A custom Home Assistant integration that tracks your [Pošta Slovenije](https://
 - Sign in with your MojaPošta account and have every parcel on it found automatically, incoming and sent
 - Or track any number of Pošta Slovenije parcels by tracking code — no account needed
 - Per-parcel sensor with the canonical status (`registered` / `in_transit` / `out_for_delivery` / `at_pickup_point` / `delivered` / `returning` / `problem`), the carrier's own status text, the post office to collect from and a tracking deep-link
-- Summary sensors: incoming parcels, parcels awaiting pickup, next delivery, recently delivered parcels, and the parcels you sent with the ones already delivered
+- Summary sensors: incoming parcels, parcels heading for and awaiting pickup, next delivery, recently delivered parcels, and the parcels you sent with the ones already delivered
 - Read-only **Deliveries** calendar (stays empty: Pošta Slovenije reports no delivery window)
 - `posta_slovenije.track_parcel` / `posta_slovenije.untrack_parcel` services, so a dashboard button can add a parcel
 - Events + device triggers for no-code automations (parcel registered, status changed, delivered, delivery time changed, and status changed / delivered for parcels you sent)
@@ -132,6 +132,7 @@ Standard HA removal applies: **Settings → Devices & Services → Pošta Sloven
 | `sensor.posta_slovenije_incoming_parcels` | Number of active tracked parcels, full list under the `parcels` attribute |
 | `sensor.posta_slovenije_parcel_<code>` | One per tracked parcel; state is the canonical status, attributes carry the full normalised parcel |
 | `sensor.posta_slovenije_next_delivery` | Earliest expected delivery; stays empty because Pošta Slovenije reports none |
+| `sensor.posta_slovenije_en_route_to_pickup_point` | Parcels heading for a post office, before they arrive; stays at 0 until Pošta Slovenije names the post office up front |
 | `sensor.posta_slovenije_awaiting_pickup` | Parcels waiting at a post office |
 | `sensor.posta_slovenije_delivered_parcels` | Recently delivered parcels (see the retention option) |
 | `sensor.posta_slovenije_outgoing_parcels` | Number of active parcels you sent, full list under the `parcels` attribute |
