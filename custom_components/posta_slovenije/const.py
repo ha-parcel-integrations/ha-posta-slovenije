@@ -33,7 +33,15 @@ PLATFORMS = [Platform.BUTTON, Platform.CALENDAR, Platform.SENSOR]
 # subset of this — it exists so a typo in CAPABILITIES fails a test instead of
 # silently dropping a carrier off a table on the docs site.
 KNOWN_CAPABILITIES = frozenset(
-    {"weight", "dimensions", "delivery_window", "pickup_point", "url", "history"}
+    {
+        "weight",
+        "dimensions",
+        "delivery_window",
+        "pickup_point",
+        "url",
+        "history",
+        "contents",
+    }
 )
 
 # Every value not listed here must come back as a literal ``None`` from
@@ -100,6 +108,9 @@ CONF_TOKEN_EXPIRES_AT = "token_expires_at"
 # slot in without an options migration.
 CONF_PARCELS = "parcels"
 CONF_TRACKING_CODE = "tracking_code"
+# The user-set parcel contents, and the optional entry an update is limited to.
+CONF_CONTENTS = "contents"
+CONF_CONFIG_ENTRY_ID = "config_entry_id"
 
 # Which way a tracked parcel travels. On a MojaPošta account the feed says so
 # (separate incoming and outgoing lists, and a flag on the row); a tracking code

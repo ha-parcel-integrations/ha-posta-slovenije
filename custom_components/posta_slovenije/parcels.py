@@ -413,6 +413,7 @@ def normalize_scans(
         "barcode": barcode,
         "sender": sender,
         "receiver": receiver,
+        "contents": None,
         "status": status,
         "raw_status": _raw_status(rows[-1][1]) if rows else None,
         "delivered": delivered,

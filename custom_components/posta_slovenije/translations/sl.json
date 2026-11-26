@@ -139,6 +139,10 @@
         "direction": {
           "name": "Smer",
           "description": "Ali to pošiljko prejemate ali pošiljate. Sledenje po kodi obeh ne loči. Če storitev znova pokličete z drugo smerjo, se že sledena pošiljka premakne."
+        },
+        "contents": {
+          "name": "Vsebina",
+          "description": "Kaj je v paketu, z lastnimi besedami. Ponoven klic za spremljan paket vsebino zamenja; prazno besedilo jo izbriše."
         }
       }
     },
@@ -149,6 +153,24 @@
         "tracking_code": {
           "name": "Sledilna koda",
           "description": "Sledilna koda Pošte Slovenije, ki ji naj se preneha slediti."
+        }
+      }
+    },
+    "update_contents": {
+      "name": "Posodobi vsebino paketa",
+      "description": "Z lastnimi besedami nastavite, kaj je v paketu s to sledilno kodo. Prazno besedilo vsebino izbriše.",
+      "fields": {
+        "tracking_code": {
+          "name": "Sledilna koda",
+          "description": "Sledilna koda Pošte Slovenije."
+        },
+        "contents": {
+          "name": "Vsebina",
+          "description": "Kaj je v paketu, z lastnimi besedami. Prazno besedilo jo izbriše."
+        },
+        "config_entry_id": {
+          "name": "Račun",
+          "description": "Račun, za katerega se vrednost shrani. Potreben, ko kode še ne pozna noben račun."
         }
       }
     }
@@ -208,6 +230,11 @@
         "name": "Dostavljeni odhajajoči paketi",
         "unit_of_measurement": "paketi"
       }
+    }
+  },
+  "exceptions": {
+    "update_contents_entry_required": {
+      "message": "Nobeden račun ne pozna te kode. Izberite račun, za katerega jo shranite."
     }
   }
 }

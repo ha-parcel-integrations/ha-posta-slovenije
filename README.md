@@ -44,6 +44,7 @@ A custom Home Assistant integration that tracks your [Pošta Slovenije](https://
 - Summary sensors: incoming parcels, parcels heading for and awaiting pickup, next delivery, recently delivered parcels, and the parcels you sent with the ones already delivered
 - Read-only **Deliveries** calendar (stays empty: Pošta Slovenije reports no delivery window)
 - `posta_slovenije.track_parcel` / `posta_slovenije.untrack_parcel` services, so a dashboard button can add a parcel
+- A `contents` field on every parcel, set in your own words with the `posta_slovenije.update_contents` service or the `contents` field of `posta_slovenije.track_parcel`; it titles the calendar event and shows on the next-delivery sensor
 - Events + device triggers for no-code automations (parcel registered, status changed, delivered, delivery time changed, and status changed / delivered for parcels you sent)
 - Opt-in per-parcel status history
 - Manual refresh button and a diagnostic last-update sensor
@@ -180,10 +181,11 @@ Every payload is the full normalised parcel plus the entry's `device_id`. Events
 
 | Service | Fields | Description |
 |---|---|---|
-| `posta_slovenije.track_parcel` | `tracking_code`, `direction` | Start tracking a parcel on the tracking hub. `direction` is `incoming` (default) or `outgoing`; calling it again with the other direction moves an already tracked parcel |
+| `posta_slovenije.track_parcel` | `tracking_code`, `direction`, `contents` (optional) | Start tracking a parcel on the tracking hub, optionally noting what is in it. `direction` is `incoming` (default) or `outgoing`; calling it again with the other direction moves an already tracked parcel |
 | `posta_slovenije.untrack_parcel` | `tracking_code` | Stop tracking a parcel on the tracking hub |
+| `posta_slovenije.update_contents` | `tracking_code`, `contents` (optional), `config_entry_id` (optional) | Set what is in a parcel, tracked or not; an empty `contents` clears it. It goes to every account or hub that lists the code; name one with `config_entry_id` (needed for a code none lists yet) |
 
-An account entry finds its parcels itself, so the services only act on the tracking hub.
+An account entry finds its parcels itself, so `track_parcel` and `untrack_parcel` only act on the tracking hub; `update_contents` works with any set-up entry. The `contents` text you set titles the parcel's calendar event and shows on the next-delivery sensor.
 
 ## Examples
 

@@ -263,3 +263,10 @@ def test_en_route_lists_pickup_parcels_not_yet_at_the_point():
     assert {
         p["barcode"] for p in awaiting.extra_state_attributes["parcels"]
     }.isdisjoint({p["barcode"] for p in en_route.extra_state_attributes["parcels"]})
+
+
+def test_next_delivery_carries_the_contents():
+    parcel = _parcel("A", planned_from="2099-05-01T10:00:00Z")
+    parcel["contents"] = "Running shoes"
+    sensor = PostaSlovenijeNextDeliverySensor(_coordinator([parcel]), _entry())
+    assert sensor.extra_state_attributes["contents"] == "Running shoes"

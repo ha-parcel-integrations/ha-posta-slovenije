@@ -25,6 +25,12 @@ def test_delivered_reply():
     assert parcel["url"].endswith(DELIVERED_CODE)
 
 
+def test_contents_is_published_empty_and_after_receiver():
+    parcel = normalize_parcel(DELIVERED_CODE, delivered_payload())
+    assert parcel["contents"] is None
+    assert list(parcel)[:5] == ["carrier", "barcode", "sender", "receiver", "contents"]
+
+
 def test_returned_reply_ignores_the_lagging_parcel_summary():
     payload = returned_payload()
     assert payload["result"]["parcel"]["statusId"] == 3

@@ -39,6 +39,7 @@ CANONICAL_KEYS = [
     "barcode",
     "sender",
     "receiver",
+    "contents",
     "status",
     "raw_status",
     "delivered",
@@ -76,6 +77,15 @@ def _warnings(caplog, phrase=""):
 
 def test_normalize_publishes_exactly_the_canonical_keys():
     assert list(_normalize(delivered_statuses())) == CANONICAL_KEYS
+
+
+def test_contents_is_known_but_never_a_capability():
+    assert "contents" in KNOWN_CAPABILITIES
+    assert "contents" not in CAPABILITIES
+    assert "contents" not in PENDING_CAPABILITIES
+    for variant in CAPABILITIES_BY_VARIANT:
+        assert "contents" not in CAPABILITIES_BY_VARIANT[variant]
+        assert "contents" not in PENDING_CAPABILITIES_BY_VARIANT[variant]
 
 
 def test_capabilities_are_consistent():

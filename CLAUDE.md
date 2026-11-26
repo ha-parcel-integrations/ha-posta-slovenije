@@ -71,8 +71,8 @@ dispatch (`__init__.py`, `config_flow.py`, `services.py`) and what both share:
   household's codes; accounts are one entry each, any number. **No
   `single_config_entry`** — that is why.
 - `track_parcel` (with its `direction`) / `untrack_parcel` act on the tracking hub only; an
-  account-only install registers no services, and they leave with the last
-  loaded tracking hub.
+  account-only install registers only `update_contents`, which serves every
+  loaded entry; the hub services leave with the last loaded tracking hub.
 - An account entry has no parcel list: its options go straight to settings and
   reload on submit (no update listener); the hub keeps its listener.
 

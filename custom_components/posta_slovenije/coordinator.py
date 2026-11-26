@@ -13,7 +13,7 @@ import hashlib
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
@@ -30,6 +30,7 @@ from .const import (
     STAGGER_MINUTES,
     ParcelStatus,
 )
+from .contents import ContentsStore
 from .parcels import apply_delivered_filter, sort_parcels_by_ts
 
 _LOGGER = logging.getLogger(__name__)
@@ -145,6 +146,12 @@ class PostaSlovenijeBaseCoordinator(DataUpdateCoordinator[list[dict]]):
             # promptly regardless of what it finds.
             update_interval=timedelta(minutes=HOT_INTERVAL_MINUTES),
         )
+        self.contents_store = ContentsStore(hass, entry.entry_id)
+        # id(published parcel) -> the code it was polled with: the contents
+        # store is keyed on the latter, and a parcel may carry another barcode
+        # or none at all.
+        self._parcel_codes: dict[int, str] = {}
+        self._listed_codes: frozenset[str] = frozenset()
         self.delivered: list[dict] = []
         self.outgoing: list[dict] = []
         self.delivered_outgoing: list[dict] = []
@@ -175,6 +182,11 @@ class PostaSlovenijeBaseCoordinator(DataUpdateCoordinator[list[dict]]):
         return self._current_tier_minutes
 
     @property
+    def known_codes(self) -> frozenset[str]:
+        """Normalised codes this entry lists, delivered ones included."""
+        return self._listed_codes
+
+    @property
     def delivered_codes(self) -> set[str]:
         """Tracking codes skipped from the fetch (diagnostics only)."""
         return set()
@@ -193,6 +205,27 @@ class PostaSlovenijeBaseCoordinator(DataUpdateCoordinator[list[dict]]):
         if device is not None:
             self._cached_device_id = device.id
         return self._cached_device_id
+
+    def _apply_contents(self, parcel: dict, code: object) -> dict:
+        """Put the user's own contents text over the carrier's, when there is one."""
+        user_value = self.contents_store.get(code)
+        if user_value is not None:
+            parcel["contents"] = user_value
+        return parcel
+
+    @callback
+    def async_reapply_contents(self) -> None:
+        """Re-read the contents store into the published parcels, without a poll."""
+        for parcel in [
+            *(self.data or []),
+            *self.delivered,
+            *self.outgoing,
+            *self.delivered_outgoing,
+        ]:
+            code = self._parcel_codes.get(id(parcel), parcel.get("barcode") or "")
+            parcel["contents"] = None
+            self._apply_contents(parcel, code)
+        self.async_update_listeners()
 
     @property
     def _include_history(self) -> bool:

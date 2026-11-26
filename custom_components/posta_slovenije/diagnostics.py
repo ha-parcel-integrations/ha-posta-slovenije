@@ -19,6 +19,7 @@ TO_REDACT = {
     "barcode",
     "sender",
     "receiver",
+    "contents",
     "url",
     # the parcel and its identifiers
     "trackingNumber",

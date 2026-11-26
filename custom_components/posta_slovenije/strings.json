@@ -139,6 +139,10 @@
         "direction": {
           "name": "Direction",
           "description": "Whether you are receiving this parcel or sending it. Tracking by code cannot tell the two apart. Calling this again with the other direction moves an already tracked parcel."
+        },
+        "contents": {
+          "name": "Contents",
+          "description": "What is in the parcel, in your own words. Calling this again for a tracked parcel replaces it; an empty text clears it."
         }
       }
     },
@@ -149,6 +153,24 @@
         "tracking_code": {
           "name": "Tracking code",
           "description": "The Pošta Slovenije tracking code to stop tracking."
+        }
+      }
+    },
+    "update_contents": {
+      "name": "Update parcel contents",
+      "description": "Set what is in a parcel, in your own words, for a tracking code. An empty text clears it.",
+      "fields": {
+        "tracking_code": {
+          "name": "Tracking code",
+          "description": "The Pošta Slovenije tracking code."
+        },
+        "contents": {
+          "name": "Contents",
+          "description": "What is in the parcel, in your own words. An empty text clears it."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The account to store this for. Needed when no account lists the code yet."
         }
       }
     }
@@ -208,6 +230,11 @@
         "name": "Outgoing delivered parcels",
         "unit_of_measurement": "parcels"
       }
+    }
+  },
+  "exceptions": {
+    "update_contents_entry_required": {
+      "message": "No account lists this code. Choose the account to store it for."
     }
   }
 }

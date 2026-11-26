@@ -23,6 +23,14 @@ def test_sender_and_receiver_are_populated_from_the_account():
     assert parcel["raw"]["inbox"]["senderName"] == "Example Shop"
 
 
+def test_contents_is_published_empty_and_after_receiver():
+    parcel = normalize_account_parcel(
+        inbox_item(1, "CH100000003SI"), delivered_payload("CH100000003SI")
+    )
+    assert parcel["contents"] is None
+    assert list(parcel)[:5] == ["carrier", "barcode", "sender", "receiver", "contents"]
+
+
 def test_pickup_codes_are_left_out_of_raw_at_any_depth():
     item = inbox_item(1, "CH100000003SI", payByLinkUrl="https://pay.example.test/1")
     detail = delivered_payload("CH100000003SI")

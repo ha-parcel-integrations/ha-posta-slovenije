@@ -169,3 +169,34 @@ async def test_outgoing_lists_are_in_diagnostics_and_redacted(hass):
     text = str(result)
     for secret in ("Example Receiver", "Example Shop", "4817", RETURNED_CODE):
         assert secret not in text
+
+
+async def test_tracking_diagnostics_redact_the_contents(hass):
+    parcel = normalize_parcel(DELIVERED_CODE, delivered_payload())
+    parcel["contents"] = "Running shoes"
+    coordinator = _coordinator(data=[parcel], delivered=[dict(parcel)])
+    result = await async_get_config_entry_diagnostics(hass, _entry(coordinator))
+
+    assert result["incoming"][0]["contents"] == R
+    assert result["delivered"][0]["contents"] == R
+    assert "Running shoes" not in str(result)
+
+
+async def test_account_diagnostics_redact_the_contents(hass):
+    parcel = normalize_account_parcel(
+        inbox_item(1, DELIVERED_CODE), delivered_payload()
+    )
+    parcel["contents"] = "Running shoes"
+    coordinator = _coordinator(
+        PostaSlovenijeAccountCoordinator,
+        data=[parcel],
+        outgoing=[dict(parcel)],
+        inbox_size=1,
+    )
+    result = await async_get_config_entry_diagnostics(
+        hass, _entry(coordinator, data={"source": "account"})
+    )
+
+    assert result["incoming"][0]["contents"] == R
+    assert result["outgoing"][0]["contents"] == R
+    assert "Running shoes" not in str(result)

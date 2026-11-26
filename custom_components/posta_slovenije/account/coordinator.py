@@ -14,6 +14,7 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from ..const import DIRECTION_INCOMING, DIRECTION_OUTGOING
+from ..contents import normalize_code
 from ..coordinator import PostaSlovenijeBaseCoordinator
 from ..transport import PostaSlovenijeApiError
 from .client import PostaSlovenijeAccountAuthError, PostaSlovenijeAccountClient
@@ -111,6 +112,7 @@ class PostaSlovenijeAccountCoordinator(PostaSlovenijeBaseCoordinator):
         include_history = self._include_history
         incoming: list[dict] = []
         outgoing: list[dict] = []
+        parcel_codes: dict[int, str] = {}
         for row, listed in rows:
             parcel_id = str(row["parcelId"])
             if self._detail_is_stale(parcel_id, row):
@@ -143,7 +145,13 @@ class PostaSlovenijeAccountCoordinator(PostaSlovenijeBaseCoordinator):
             parcel = normalize_account_parcel(
                 row, detail, include_history=include_history
             )
+            self._apply_contents(parcel, parcel["barcode"])
+            parcel_codes[id(parcel)] = parcel["barcode"]
             direction = row_direction(row, listed, detail)
             (outgoing if direction == DIRECTION_OUTGOING else incoming).append(parcel)
 
+        self._parcel_codes = parcel_codes
+        self._listed_codes = frozenset(
+            normalize_code(code) for code in parcel_codes.values() if code
+        )
         return self._publish(incoming, outgoing)

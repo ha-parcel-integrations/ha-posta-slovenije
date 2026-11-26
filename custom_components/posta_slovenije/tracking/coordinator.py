@@ -12,6 +12,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 
 from ..const import CONF_PARCELS, CONF_TRACKING_CODE, DIRECTION_OUTGOING
+from ..contents import normalize_code
 from ..coordinator import PostaSlovenijeBaseCoordinator
 from ..parcels import tracked_direction
 from .api import PostaSlovenijeApiClient, PostaSlovenijeApiError
@@ -53,6 +54,11 @@ class PostaSlovenijeCoordinator(PostaSlovenijeBaseCoordinator):
     def delivered_codes(self) -> set[str]:
         """Tracking codes currently skipped from the fetch (diagnostics only)."""
         return self._delivered_codes
+
+    @property
+    def known_codes(self) -> frozenset[str]:
+        """Normalised tracking codes this entry follows."""
+        return frozenset(normalize_code(code) for code in self._tracked())
 
     def _tracked(self) -> dict[str, str]:
         """Return the configured tracking codes mapped to their direction."""
@@ -138,9 +144,16 @@ class PostaSlovenijeCoordinator(PostaSlovenijeBaseCoordinator):
 
         include_history = self._include_history
         entries = [
-            (code, normalize_parcel(code, payload, include_history=include_history))
+            (
+                code,
+                self._apply_contents(
+                    normalize_parcel(code, payload, include_history=include_history),
+                    code,
+                ),
+            )
             for code, payload in payloads.items()
         ]
+        self._parcel_codes = {id(parcel): code for code, parcel in entries}
         self._delivered_codes = {
             code for code, parcel in entries if parcel["delivered"]
         }
